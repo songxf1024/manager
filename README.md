@@ -66,3 +66,15 @@ sudo bash tsm.sh add <username> <time>
 
 ![image](https://github.com/songxf1024/tsm/assets/111047002/576d47cc-ca65-47f8-a126-0044953add9a)
 
+---
+
+打包为可执行文件：
+
+```bash
+shc -f tsm.sh -o tsm
+```
+
+```bash
+sudo ./tsm
+```
+
