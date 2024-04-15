@@ -12,7 +12,8 @@ Temporary sudo privilege manager. 多功能Ubuntu临时授予用户sudo权限管
 sudo bash tsm.sh
 ```
 
-![image](https://github.com/songxf1024/tsm/assets/111047002/acc04130-ae82-486f-a730-43045e829d1a)
+![image](https://github.com/songxf1024/tsm/assets/111047002/95847695-4e67-4017-b4de-7e434cea3696)
+
 
 **初始化日志文件和权限目录：**
 
@@ -22,6 +23,7 @@ sudo bash tsm.sh init
 
 ![image](https://github.com/songxf1024/tsm/assets/111047002/593e9f89-7700-448a-8d28-f46e7e7894c0)
 
+
 **新增临时用户：**
 
 ```bash
@@ -29,6 +31,16 @@ sudo bash tsm.sh add <username> <time>
 ```
 
 ![image](https://github.com/songxf1024/tsm/assets/111047002/3f2471cd-8cc2-4895-a8cb-32d090736c02)
+
+
+**新增临时用户(检查用户有效性)：**
+
+```bash
+sudo bash tsm.sh add <username> <time> -c
+```
+
+![image](https://github.com/songxf1024/tsm/assets/111047002/3f79f1d6-4428-409f-a75e-a4c5dd9d0250)
+
 
 **新增永久用户(伪永久，876000小时约100+年)：**
 
@@ -38,6 +50,7 @@ sudo bash tsm.sh add <username> -p
 
 ![image](https://github.com/songxf1024/tsm/assets/111047002/90198291-bef5-4904-b239-db9296a63b0c)
 
+
 **列举已授权用户：**
 
 ```bash
@@ -45,6 +58,7 @@ sudo bash tsm.sh list
 ```
 
 ![image](https://github.com/songxf1024/tsm/assets/111047002/5a47bd03-48a2-43cf-b5b7-bff5abb1774e)
+
 
 **删除已授权用户：**
 
@@ -55,6 +69,7 @@ sudo bash tsm.sh del test
 ![image](https://github.com/songxf1024/tsm/assets/111047002/3c86ad43-47b1-4b6f-bf37-5ac5878cd486)
 
 ![image](https://github.com/songxf1024/tsm/assets/111047002/0461a3aa-6e5c-4c97-be63-fe462d841bb3)
+
 
 **更新已授权用户时间(同新增用户)：**
 
