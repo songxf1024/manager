@@ -266,28 +266,60 @@ function show_usage {
     echo ""
 }
 
+function process_add_command {
+    # 初始化变量
+    local permanent=false
+    local check_user=false
+    local duration=""
+    local username=""
+
+    # 循环处理所有参数
+    while (( "$#" )); do
+        case "$1" in
+            -p)
+                permanent=true
+                duration="876000"  # 代表100年，即视为永久
+                shift
+                ;;
+            -c)
+                check_user=true
+                shift
+                ;;
+            *)
+                # 如果不是-p或-c，那应该是用户名和时长
+                if [[ -z "$username" ]]; then
+                    username="$1"
+                else
+                    duration="$1"
+                fi
+                shift
+                ;;
+        esac
+    done
+
+    # 校验参数完整性
+    if [[ -z "$username" ]]; then
+        echo "Usage: $script_name add username [duration_in_hours] [-p] [-c]"
+        exit 1
+    elif [[ -z "$duration" && "$permanent" != true ]]; then
+        echo "Usage: $script_name add username duration_in_hours [-p] [-c]"
+        exit 1
+    fi
+
+    # 根据是否需要检查用户存在性来调用add_sudo函数
+    if $check_user; then
+        add_sudo "$username" "$duration" "-c"
+    else
+        add_sudo "$username" "$duration"
+    fi
+}
+
+
 # 主逻辑处理参数和命令
 case "$1" in
     add)
-        if [[ "$3" == "-p" ]]; then
-            if [ "$#" -ne 3 ]; then
-                echo "Usage: $script_name add username -p"
-                exit 1
-            fi
-            add_sudo $2 "876000"
-        elif [[ "$4" == "-c" ]]; then
-            if [ "$#" -ne 4 ]; then
-                echo "Usage: $script_name add username duration_in_hours -c"
-                exit 1
-            fi
-            add_sudo $2 $3 "-c"
-        else
-            if [ "$#" -ne 3 ]; then
-                echo "Usage: $script_name add username duration_in_hours"
-                exit 1
-            fi
-            add_sudo $2 $3
-        fi
+        shift  # 移除'add'命令
+        process_add_command "$@"
         ;;
     list)
         if [ "$#" -ne 1 ]; then
