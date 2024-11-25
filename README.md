@@ -8,8 +8,13 @@ Temporary sudo privilege manager. 多功能Ubuntu临时授予用户sudo权限管
 
 **用法说明：**
 
+> 如果要使用ui版，需要先安装库：
+> `sudo apt install dialog`
+
+
 ```bash
 sudo bash tsm.sh
+# 或 sudo bash tsm_ui.sh
 ```
 
 ![image](https://github.com/songxf1024/tsm/assets/111047002/95847695-4e67-4017-b4de-7e434cea3696)
