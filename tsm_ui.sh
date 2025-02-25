@@ -159,8 +159,9 @@ function list_sudo() {
             remaining_seconds=0
         fi
 
-        local remaining_minutes=$((remaining_seconds / 60))
-        local remaining_hours=$((remaining_minutes / 60))
+        # 计算小时和分钟
+        local remaining_hours=$((remaining_seconds / 3600))
+        local remaining_minutes=$(( (remaining_seconds % 3600) / 60 ))
         output+="$username | $granted_on | ${remaining_hours}h ${remaining_minutes}m\n"
     done < "$log_file"
 
