@@ -6,12 +6,12 @@ Temporary sudo privilege manager. 多功能Ubuntu临时授予用户sudo权限管
 - 简单来说，就是在`/etc/sudoers.d/temp`目录下，为每个要授权的用户，创建用户授权文件。然后通过`at`指令来定时删除该用户授权文件。
 - 直接编辑`/etc/sudoers`文件是危险的，而在`/etc/sudoers.d/temp`目录下操作文件是安全的。
 
-**用法说明：**
+## 用法说明
 
 > 如果要使用ui版，需要先安装库：
 > `sudo apt install dialog`
 
-
+### 命令行版
 ```bash
 sudo bash tsm.sh
 # 或 sudo bash tsm_ui.sh
@@ -88,7 +88,11 @@ sudo bash tsm.sh add <username> <time>
 
 ---
 
-打包为可执行文件：
+### UI版
+![image](https://github.com/user-attachments/assets/48e6c2ba-8387-4b91-bb18-b77f61fcbf45)
+
+
+## 打包为可执行文件
 
 ```bash
 shc -f tsm.sh -o tsm
