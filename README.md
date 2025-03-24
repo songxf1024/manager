@@ -24,6 +24,7 @@ Temporary sudo privilege manager. 多功能Ubuntu临时授予用户sudo权限管
 ## 打包为可执行文件
 
 ```bash
+sudo apt install shc -y
 shc -f tsm_ui.sh -o tsm
 ```
 
