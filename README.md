@@ -27,6 +27,11 @@ Temporary sudo privilege manager. 多功能Ubuntu临时授予用户sudo权限管
 sudo apt install shc -y
 shc -f tsm_ui.sh -o tsm
 ```
+> 如果报错 invalid first line in script: #!/bin/bash，则需要先使用dos2unix：
+> ```bash
+> sudo apt install dos2unix -y
+> dos2unix tsm_ui.sh
+> ```
 
 ```bash
 sudo ./tsm
