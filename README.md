@@ -1,5 +1,14 @@
-# tsm
-Temporary sudo privilege manager. 多功能Ubuntu临时授予用户sudo权限管理工具
+# Linux manager
+Linux下的管理工具包，包括sudo权限管理、group管理等。
+
+**工具清单**
+- **tsm**：临时授予用户sudo权限的管理工具
+- **gum**：用户组的管理工具
+
+
+## tsm
+Temporary sudo privilege manager. 
+临时授予用户sudo权限的管理工具。
 
 设计原理和初衷可以看这里：[【技巧】Ubuntu临时授予用户sudo权限，并在一定时间后自动撤销](https://blog.csdn.net/sxf1061700625/article/details/133270785)
 
@@ -9,6 +18,7 @@ Temporary sudo privilege manager. 多功能Ubuntu临时授予用户sudo权限管
 **用法说明**
 - 先安装库：`sudo apt install dialog`
 - 运行脚本：`sudo bash tsm_ui.sh`
+
 ![image](https://github.com/user-attachments/assets/48e6c2ba-8387-4b91-bb18-b77f61fcbf45)
 
 **包含的功能**：
@@ -21,8 +31,7 @@ Temporary sudo privilege manager. 多功能Ubuntu临时授予用户sudo权限管
 
 ---
 
-## 打包为可执行文件
-
+**打包为可执行文件**
 ```bash
 sudo apt install shc -y
 shc -f tsm_ui.sh -o tsm
@@ -36,4 +45,22 @@ shc -f tsm_ui.sh -o tsm
 ```bash
 sudo ./tsm
 ```
+
+## gum
+Group user manager. 
+用户组的管理工具。
+
+**用法说明**
+- 先安装库：`sudo apt install dialog`
+- 运行脚本：`sudo bash gum_ui.sh`
+
+![image](https://github.com/user-attachments/assets/74f8d67a-5c3c-40d1-97e5-134b8f61e276)
+
+**包含的功能**：
+- 搜索用户组：可输入关键字快速定位目标组
+- 浏览所有用户组：过滤系统保留组与默认 per-user 组
+- 查看组成员详情：显示用户名、UID、所属所有组（自动换行美化显示）
+- 添加用户到组：从 /home 目录自动提取本地用户进行选择
+- 从组中删除用户：自动更新用户所属的组列表
+
 
