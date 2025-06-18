@@ -1,4 +1,4 @@
-/#!/bin/bash
+#!/bin/bash
 
 # Check for dialog
 if ! command -v dialog &>/dev/null; then
