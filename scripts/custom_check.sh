@@ -55,8 +55,8 @@ export CUDA_HOME=/usr/local/cuda-$CUDA_VERSION
 # export PATH=$PATH:/snap/bin
 
 
-## 万能解压命令
-extract () {
+## 万能解压命令: ex xxx.zip
+ex () {
         if [[ -z "$1" ]] ; then
                print -P "usage: \e[1;36mex\e[1;0m < filename >"
                print -P "       Extract the file specified based on the extension"
