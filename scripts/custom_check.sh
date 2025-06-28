@@ -1,16 +1,37 @@
 #!/bin/bash
-# 放在 /etc/profile.d/ 下，用于统一为所有用户设置一些环境
+## 放在 /etc/profile.d/ 下，用于统一为所有用户设置一些环境
 
+## 仅对交互式 shell 生效
+[[ $- != *i* ]] && return
 
-# 颜色
-GREEN="\033[1;32m"
-YELLOW="\033[1;33m"
-CYAN="\033[1;36m"
+## 定义颜色
+BLACK="\033[0;30m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+BLUE="\033[0;34m"
+MAGENTA="\033[0;35m"
+CYAN="\033[0;36m"
+WHITE="\033[0;37m"
 RESET="\033[0m"
 
 
+## 设置别名和颜色
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
 
-# >>> conda initialize >>>
+
+## conda 设置
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/home/sxf/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
@@ -23,8 +44,9 @@ else
     fi
 fi
 unset __conda_setup
-# <<< conda initialize <<<
 
+
+## CUDA 设置
 export CUDA_VERSION=12.1
 export PATH=/usr/local/cuda-$CUDA_VERSION/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda-$CUDA_VERSION/lib64:$LD_LIBRARY_PATH
@@ -33,24 +55,8 @@ export CUDA_HOME=/usr/local/cuda-$CUDA_VERSION
 # export PATH=$PATH:/snap/bin
 
 
-## 设置ls别名
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-
-## 设置颜色
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
-    #alias dir='dir --color=auto'
-    #alias vdir='vdir --color=auto'
-    alias grep='grep --color=auto'
-    alias fgrep='fgrep --color=auto'
-    alias egrep='egrep --color=auto'
-fi
-
 ## 万能解压命令
-ex () {
+extract () {
         if [[ -z "$1" ]] ; then
                print -P "usage: \e[1;36mex\e[1;0m < filename >"
                print -P "       Extract the file specified based on the extension"
@@ -79,32 +85,25 @@ ex () {
     }
 
 
-
-
 echo -e "${GREEN}*******************************************************************************${RESET}"
-
 echo '>> 服务器使用统一规范: https://ismc.yuque.com/afx7fe/icgdxz/gsfghk3h5cmchp2b <<'
 echo '>> 初始用户务必更改密码，请勿使用弱密码                                      <<'
 echo '>> 软件统一安装在/opt/software下，以免重复安装                               <<'
 echo '>> 已自动设置Anaconda、CUDA的路径 (若需覆盖配置可修改你的~/.bashrc)          <<'
 
-#----检查用户名与密码是否相同----#
-# 仅对交互式 shell 生效
-[[ $- != *i* ]] && return
+
+## 检查用户名与密码是否相同
 username="$(whoami)"
-# 检查当前用户是否是 root，跳过检查
-if [ "$username" = "root" ]; then
-    return
-fi
-# 尝试使用用户名作为密码运行 su，如果成功则说明密码和用户名相同
-echo "$username" | su -c "exit" "$username" >/dev/null 2>&1
-if [ $? -eq 0 ]; then
-    echo -e "\033[1;31m[安全警告] 您的账号 \"$username\" 的密码与用户名相同！请尽快修改密码。\033[0m"
+if [ "$username" != "root" ]; then
+    echo "$username" | su -s /bin/true -c "true" "$username" >/dev/null 2>&1
+    # echo "$username" | su -c "exit" "$username" >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo -e "\033[1;31m[安全警告] 您的账号 \"$username\" 的密码与用户名相同！请尽快修改密码。\033[0m" >&2
+    fi
 fi
 
 
-# ----显示系统信息----#
-# 获取基本信息
+## 显示系统信息
 HOSTNAME=$(hostname)
 UPTIME=$(uptime -p | sed 's/up //')
 LOADAVG=$(uptime | awk -F'load average:' '{print $2}' | sed 's/^ //')
@@ -127,7 +126,6 @@ printf "| %-10s | %-36s |\n" "内存"   "${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_P
 printf "| %-10s | %-36s |\n" "负载情况" "$LOADAVG"
 printf "| %-10s | %-36s |\n" "运行时长" "$UPTIME"
 echo -e "---------------------------------------------------"
-
 echo -e "${CYAN}磁盘挂载信息${RESET}"
 echo -e "-------------------------------------------------"
 printf "| %-10s | %-10s | %-10s | %-6s |\n" "Mount" "Used" "Total" "Usage"
@@ -140,4 +138,3 @@ echo -e "-------------------------------------------------"
 
 
 echo -e "${GREEN}*******************************************************************************${RESET}\n"
-#-------------------------------#
