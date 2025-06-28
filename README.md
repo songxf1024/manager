@@ -2,9 +2,9 @@
 Linux下的管理工具包，包括sudo权限管理、group管理等。
 
 **工具清单**
-- **tsm.sh**：临时授予用户sudo权限的管理工具
-- **gum.sh**：用户组的管理工具
-- **scripts**：一些常用的脚本
+- **[tsm_ui.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#tsm)**：临时授予用户sudo权限的管理工具
+- **[gum.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#gum)**：用户组的管理工具
+- **[scripts](https://github.com/songxf1024/manager?tab=readme-ov-file#scripts)**：一些常用的脚本
 
 
 ## tsm
