@@ -10,6 +10,7 @@ fi
 TMPFILE=$(mktemp)
 SEARCHFILE=$(mktemp)
 
+
 # Step 1: Build list of default per-user groups (same name and GID)
 declare -A user_primary_gids
 while IFS=: read -r username _ _ gid _ home _; do
@@ -40,9 +41,12 @@ while true; do
     --backtitle "Group Manager" \
     --title "Main Menu" \
     --menu "Choose an action:" 15 60 5 \
-    1 "Search group by keyword" \
+    1 "Search group" \
     2 "Browse all groups" \
-    3 "Exit" \
+    3 "Create new group" \
+    4 "Change GPU group" \
+    5 "Restore GPU group" \
+    6 "Exit" \
     2>"$TMPFILE"
 
   main_choice=$(<"$TMPFILE")
@@ -58,6 +62,53 @@ while true; do
       search_term=""
       ;;
     3)
+      dialog --inputbox "Enter name for new group:" 10 50 2>"$TMPFILE"
+      new_group=$(<"$TMPFILE")
+      rm -f "$TMPFILE"
+      if [ -n "$new_group" ]; then
+        if sudo getent group "$new_group" >/dev/null; then
+          dialog --msgbox "Group '$new_group' already exists." 8 40
+        else
+          if sudo groupadd "$new_group"; then
+            dialog --msgbox "Group '$new_group' created successfully." 8 50
+          else
+            dialog --msgbox "Failed to create group. You may need sudo." 8 50
+          fi
+        fi
+      fi
+      continue
+      ;;
+    4)
+      MENU_ITEMS=()
+      while IFS=: read -r group_name _ gid users; do
+        if [[ ${default_user_groups[$group_name]} ]]; then continue; fi
+        if [[ $group_name =~ $system_group_pattern || $gid -lt 1000 ]]; then continue; fi
+        if [[ -z "$search_term" || "$group_name" == *"$search_term"* ]]; then
+            MENU_ITEMS+=("$group_name" "GID: $gid")
+        fi
+      done < /etc/group
+      dialog --menu "Select a group to set as GPU device group:" 20 60 10 "${MENU_ITEMS[@]}" 2>"$TMPFILE"
+      gpu_group=$(<"$TMPFILE")
+
+      if [ -z "$gpu_group" ]; then
+        dialog --msgbox "No group selected. Operation cancelled." 8 50
+      else
+        for dev in /dev/nvidia*; do
+          [[ "$dev" != /dev/nvidia-caps* ]] && sudo chgrp "$gpu_group" "$dev" && sudo chmod 660 "$dev"
+        done
+        dialog --msgbox "GPU devices assigned to group '$gpu_group' with mode 660." 8 60
+      fi
+      continue
+      ;;
+    5)
+      if sudo /sbin/ub-device-create; then
+        dialog --msgbox "GPU device permissions restored via ub-device-create." 8 60
+      else
+        dialog --msgbox "Failed to restore GPU device permissions." 8 60
+      fi
+      continue
+      ;;
+    6)
       clear
       exit 0
       ;;
@@ -84,7 +135,7 @@ while true; do
   # Select group
   dialog --clear \
     --backtitle "Group Viewer" \
-    --title "Select a Group" \
+    --title "Select a group" \
     --menu "Select a group to manage:" \
     20 70 15 \
     "${MENU_ITEMS[@]}" 2>"$TMPFILE"
@@ -104,9 +155,9 @@ while true; do
       --title "Manage Group: $selected_group" \
       --menu "Choose an action for group '$selected_group':" \
       15 60 6 \
-      1 "View group members" \
-      2 "Add a user to this group" \
-      3 "Remove a user from this group" \
+      1 "List group members" \
+      2 "Add user to group" \
+      3 "Remove user from group" \
       4 "Back to group list" \
       2>"$TMPFILE"
 
