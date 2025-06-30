@@ -54,7 +54,7 @@ Group user manager.
 
 **用法说明**
 - 先安装库：`sudo apt install dialog`
-- 运行脚本：`sudo bash gum_ui.sh`
+- 运行脚本：`sudo bash gum.sh`
 
 <p align="center"><img src="https://github.com/user-attachments/assets/74f8d67a-5c3c-40d1-97e5-134b8f61e276" alt="image" width="600"/></p>
 
@@ -64,6 +64,8 @@ Group user manager.
 - 查看组成员详情：显示用户名、UID、所属所有组（自动换行美化显示）
 - 添加用户到组：从 /home 目录自动提取本地用户进行选择
 - 从组中删除用户：自动更新用户所属的组列表
+- 新建用户组
+- 更改和恢复`/dev/nvidia*`所属的组：[可用于GPU的权限控制](https://blog.csdn.net/sxf1061700625/article/details/149027382)
 
 
 ## scripts
