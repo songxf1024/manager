@@ -46,7 +46,8 @@ while true; do
     3 "Create new group" \
     4 "Change GPU group" \
     5 "Restore GPU group" \
-    6 "Exit" \
+    6 "View GPU group"\
+    7 "Exit" \
     2>"$TMPFILE"
 
   main_choice=$(<"$TMPFILE")
@@ -109,6 +110,17 @@ while true; do
       continue
       ;;
     6)
+      TMP_PERM=$(mktemp)
+      ls -l /dev/nvidia* 2>/dev/null > "$TMP_PERM"
+      if [ -s "$TMP_PERM" ]; then
+        dialog --textbox "$TMP_PERM" 20 80
+      else
+        dialog --msgbox "No NVIDIA devices found." 8 40
+      fi
+      rm -f "$TMP_PERM"
+      continue
+      ;;
+    7)
       clear
       exit 0
       ;;
