@@ -70,7 +70,7 @@ Group user manager.
 
 ## scripts
 一些常用的脚本
-- **custom_check.sh**: 放在 `/etc/profile.d/` 下，用于统一为所有用户设置一些环境
+- **custom_check.sh**: 放在 `/etc/profile.d/` 或 `/etc/bash_completion.d/`(推荐) 下，用于统一为所有用户设置一些环境
 <p align="center"><img src="https://github.com/user-attachments/assets/f681a1bc-e1ec-475c-b314-d092c4c72874" alt="image" width="600"/></p>
 
 
