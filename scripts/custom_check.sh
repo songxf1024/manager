@@ -1,8 +1,20 @@
 #!/bin/bash
-## 放在 /etc/profile.d/ 下，用于统一为所有用户设置一些环境
+## 用于统一为所有用户设置一些环境
+## 方式1： 放在 /etc/profile.d/ 下。仅对登录式shell有效。
+## 方式2： 或者新建并放在 /etc/bash.d/ 目录下，然后在 /etc/bash.bashrc/ 最底下添加：
+## if [ -d /etc/bash.d ]; then
+##     for file in /etc/bash.d/*; do
+##         [ -f "$file" ] && . "$file"
+##     done
+## fi
+
 
 ## 仅对交互式 shell 生效
 [[ $- != *i* ]] && return
+
+## 设置终端编码
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
 
 ## 定义颜色
 BLACK="\033[0;30m"
