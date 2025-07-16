@@ -45,14 +45,14 @@ fi
 
 ## conda 设置
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/sxf/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+__conda_setup="$('/mnt/disk/software/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
-    if [ -f "/home/sxf/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/sxf/anaconda3/etc/profile.d/conda.sh"
+    if [ -f "/mnt/disk/software/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/mnt/disk/software/anaconda3/etc/profile.d/conda.sh"
     else
-        export PATH="/home/sxf/anaconda3/bin:$PATH"
+        export PATH="/mnt/disk/software/anaconda3/bin:$PATH"
     fi
 fi
 unset __conda_setup
@@ -98,9 +98,12 @@ ex () {
 
 
 echo -e "${GREEN}*******************************************************************************${RESET}"
+echo -e "${RED}服务器使用须知:${RESET}"
 echo '>> 服务器使用统一规范: https://ismc.yuque.com/afx7fe/icgdxz/gsfghk3h5cmchp2b <<'
-echo '>> 初始用户务必更改密码，请勿使用弱密码                                      <<'
-echo '>> 软件统一安装在/opt/software下，以免重复安装                               <<'
+echo '>> 初始用户务必更改密码, 请勿使用弱密码, 请勿账号密码相同                    <<'
+echo '>> 常规软件统一安装在"/opt/software"下, 超大软件装在"/mnt/disk/software"     <<'
+echo '>> 所有数据集统一存放在"/mnt/disk/datasets/<name>"下                         <<'
+echo '>> 个人大文件请勿放根目录，应当统一存放在"/mnt/disk/storage/<user>"下        <<'
 echo '>> 已自动设置Anaconda、CUDA的路径 (若需覆盖配置可修改你的~/.bashrc)          <<'
 
 
