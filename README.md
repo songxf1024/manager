@@ -5,6 +5,7 @@ Linux下的管理工具包，包括sudo权限管理、group管理等。
 - **[tsm_ui.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#tsm)**：临时授予用户sudo权限的管理工具
 - **[gum.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#gum)**：用户组的管理工具
 - **[scripts](https://github.com/songxf1024/manager?tab=readme-ov-file#scripts)**：一些常用的脚本
+- **[thirdparty](https://github.com/songxf1024/manager?tab=readme-ov-file#thirdparty)**：第三方的好用工具
 
 
 ## tsm
@@ -72,5 +73,12 @@ Group user manager.
 一些常用的脚本
 - **custom_check.sh**: 放在 `/etc/profile.d/` 下或放 `/etc/bash.d/`下 并在 `/etc/bash.bashrc/` 中引用，用于统一为所有用户设置一些环境
 <p align="center"><img src="https://github.com/user-attachments/assets/f681a1bc-e1ec-475c-b314-d092c4c72874" alt="image" width="600"/></p>
+
+
+## thirdparty
+- **系统换源**：[LinuxMirrors](https://github.com/SuperManito/LinuxMirrors)  
+> 更换系统软件源: `bash <(curl -sSL https://linuxmirrors.cn/main.sh)`  
+> Docker 安装与换源: `bash <(curl -sSL https://linuxmirrors.cn/docker.sh)`  
+> Docker 更换镜像加速器: `bash <(curl -sSL https://linuxmirrors.cn/docker.sh) --only-registry`  
 
 
