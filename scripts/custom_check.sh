@@ -56,6 +56,8 @@ else
     fi
 fi
 unset __conda_setup
+# 为多用户共享设置缓存目录
+export CONDA_PKGS_DIRS=/mnt/disk/software/anaconda3/pkgs_cache/$(whoami)
 
 
 ## CUDA 设置
