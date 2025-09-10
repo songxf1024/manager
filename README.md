@@ -4,6 +4,7 @@ Linux下的管理工具包，包括sudo权限管理、group管理等。
 **工具清单**
 - **[tsm_ui.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#tsm)**：临时授予用户sudo权限的管理工具
 - **[gum.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#gum)**：用户组的管理工具
+- **[catcpu.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#catcpu)**：用户组的管理工具
 - **[scripts](https://github.com/songxf1024/manager?tab=readme-ov-file#scripts)**：一些常用的脚本
 - **[thirdparty](https://github.com/songxf1024/manager?tab=readme-ov-file#thirdparty)**：第三方的好用工具
 
@@ -67,6 +68,23 @@ Group user manager.
 - 从组中删除用户：自动更新用户所属的组列表
 - 新建用户组
 - 更改和恢复`/dev/nvidia*`所属的组：[可用于GPU的权限控制](https://blog.csdn.net/sxf1061700625/article/details/149027382)
+
+## catcpu
+曲线图方式显示CPU的使用率。
+
+**用法说明**
+- 直接运行：`bash catcpu.sh`
+- 自定义绘图点：`bash catcpu.sh -p "*"`
+
+<p align="center"><img src="https://github.com/user-attachments/assets/69888704-50d8-4b70-bce3-b269b0ac5319" alt="image" width="600"/></p>
+
+**包含的功能**：
+- 实时 CPU 使用率采集（从 /proc/stat 读取）
+- 动态 ASCII 曲线图展示，带彩色（绿/黄/红）标记
+- Y 轴动态缩放，刻度自动四舍五入避免重复
+- 显示 CPU usage、历史最小/最大 usage、load average
+- 支持通过 `-p` 参数自定义绘图点符号
+
 
 
 ## scripts
