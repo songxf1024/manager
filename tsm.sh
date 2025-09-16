@@ -1,21 +1,46 @@
 #!/bin/bash
 
-# -------------------------
-# 基本配置和路径定义
-# -------------------------
+# 配置文件和目录
 script_name=$(basename "$0")
-# 存放临时 sudo 权限文件的目录
 temp_sudo_dir="/etc/sudoers.d/temp"
-# 正式 sudo 配置目录
 sudoers_dir="/etc/sudoers.d"
-# 用于记录添加时间/at任务id等
 log_file="/var/log/sudoers_timed.log"
-# 界面标题
-TITLE="Sudo Privileges Manager"
 
 # -------------------------
-# 初始化环境，确保目录和日志文件存在
+# 检查并安装依赖
 # -------------------------
+function check_dependencies() {
+    local missing=()
+
+    # 检查 dialog
+    if ! command -v dialog &>/dev/null; then
+        missing+=("dialog")
+    fi
+
+    # 检查 at
+    if ! command -v at &>/dev/null; then
+        missing+=("at")
+    fi
+
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo "检测到缺少依赖: ${missing[*]}"
+        echo "正在安装..."
+        sudo apt update
+        sudo apt install -y "${missing[@]}"
+        
+        # 再次检查是否安装成功
+        for pkg in "${missing[@]}"; do
+            if ! command -v "$pkg" &>/dev/null; then
+                echo "❌ $pkg 安装失败，请手动执行: sudo apt install $pkg"
+                exit 1
+            fi
+        done
+        echo "✅ 所有依赖已安装完成。"
+    fi
+}
+
+
+# 初始化环境，确保目录和日志文件存在
 function init_environment() {
     if ! command -v at &> /dev/null; then
         dialog --msgbox "The 'at' command is not installed. Cannot set timed removal." 10 30
@@ -27,9 +52,10 @@ function init_environment() {
     sudo chown root:root "$log_file"
 }
 
-# -------------------------
-# 主菜单逻辑，循环显示操作项
-# -------------------------
+# 界面标题
+TITLE="Sudo Privileges Manager"
+
+# 主菜单
 function main_menu() {
     while true; do
         cmd=$(dialog --clear --stdout \
@@ -51,10 +77,7 @@ function main_menu() {
     done
 }
 
-# -------------------------
-# 添加 sudo 权限的交互 UI
-# 自动列出所有非系统用户供选择
-# -------------------------
+# 添加 sudo 权限的 UI
 function add_sudo_ui() {
     # 获取系统中非系统用户（UID >= 1000，排除 nobody）
     local user_list=()
@@ -67,7 +90,6 @@ function add_sudo_ui() {
         dialog --msgbox "No valid users found to assign sudo." 10 40
         return
     fi
-    # 用户选择菜单
     local username=$(dialog --clear --stdout \
         --title "Select User" \
         --menu "Choose a user to grant temporary sudo:" 15 50 6 \
@@ -76,7 +98,7 @@ function add_sudo_ui() {
         dialog --msgbox "Username cannot be empty!" 10 30
         return
     fi
-    # 输入时长或永久
+
     local duration=$(dialog --clear --stdout --inputbox "Enter duration in hours (or 'p' for permanent):" 10 40)
     if [[ -z "$duration" ]]; then
         dialog --msgbox "Duration cannot be empty!" 10 30
@@ -86,19 +108,14 @@ function add_sudo_ui() {
     dialog --msgbox "Sudo privileges for $username have been updated." 10 30
 }
 
-# -------------------------
-# 显示当前已有 sudo 权限的用户及其到期时间
-# -------------------------
+# 列出用户 sudo 权限的 UI
 function list_sudo_ui() {
     sync_permissions
     local list_output=$(list_sudo)
     dialog --msgbox "$list_output" 20 80
 }
 
-# -------------------------
-# 删除 sudo 权限交互 UI
-# 自动列出已有 sudo 权限的用户供选择
-# -------------------------
+# 删除 sudo 权限的 UI
 function del_sudo_ui() {
     sync_permissions
     local users=()
@@ -123,9 +140,7 @@ function del_sudo_ui() {
     dialog --msgbox "Sudo privileges for $username have been removed." 10 30
 }
 
-# -------------------------
-# 初始化：清空日志文件并清理所有临时 sudo 文件
-# -------------------------
+# 初始化环境的 UI
 function init_ui() {
     dialog --yesno "This will clear all logs and temporary sudo privileges. Are you sure?" 10 40
     if [[ $? -eq 0 ]]; then
@@ -136,10 +151,7 @@ function init_ui() {
     fi
 }
 
-# -------------------------
-# 添加 sudo 权限的核心逻辑
-# 支持临时和永久授权，并自动设置 at 定时任务
-# -------------------------
+# 添加 sudo 权限逻辑
 function add_sudo() {
     local username=$1
     local duration=$2
@@ -232,10 +244,7 @@ function add_sudo() {
     fi
 }
 
-# -------------------------
-# 列出当前 sudo 权限分配情况
-# 包括用户名、授权时间、剩余时间
-# -------------------------
+# 列出 sudo 权限逻辑
 function list_sudo() {
     sync_permissions
     local output="| Username        | Granted on          | Expires in       |\n"
@@ -266,10 +275,8 @@ function list_sudo() {
     echo -e "$output"
 }
 
-# -------------------------
-# 删除 sudo 权限的逻辑
-# 清除文件、链接、at任务 和日志条目
-# -------------------------
+
+# 删除 sudo 权限逻辑
 function del_sudo() {
     local username=$1
     sync_permissions
@@ -287,9 +294,7 @@ function del_sudo() {
     sudo sed -i "/^$username /d" "$log_file"
 }
 
-# -------------------------
-# 初始化 sudo 管理环境：清除所有权限配置和日志
-# -------------------------
+# 初始化逻辑
 function init() {
     > "$log_file"
     if [[ -d "$temp_sudo_dir" && "$temp_sudo_dir" == /etc/sudoers.d/temp* ]]; then
@@ -297,9 +302,7 @@ function init() {
     fi
 }
 
-# -------------------------
-# 同步权限逻辑，清理已被删除用户残留的 sudo 文件
-# -------------------------
+# 同步权限逻辑
 function sync_permissions() {
     local existing_users=()
     while IFS=' ' read -r user _; do
@@ -324,6 +327,9 @@ function sync_permissions() {
     done
 }
 
-# 初始化环境并启动 UI
+# 先检查依赖
+check_dependencies
+# 初始化
 init_environment
+# 启动主菜单
 main_menu
