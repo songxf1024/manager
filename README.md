@@ -2,7 +2,7 @@
 Linux下的管理工具包，包括sudo权限管理、group管理等。
 
 **工具清单**
-- **[tsm_ui.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#tsm)**：临时授予用户sudo权限的管理工具
+- **[tsm.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#tsm)**：临时授予用户sudo权限的管理工具
 - **[gum.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#gum)**：用户组的管理工具
 - **[catcpu.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#catcpu)**：监控CPU使用率
 - **[scripts](https://github.com/songxf1024/manager?tab=readme-ov-file#scripts)**：一些常用的脚本
