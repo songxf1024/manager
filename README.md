@@ -1,4 +1,4 @@
-# Linux manager
+<img width="1508" height="958" alt="image" src="https://github.com/user-attachments/assets/dc63d352-5660-4192-90ec-d139799a84f7" />›# Linux manager
 Linux下的管理工具包，包括sudo权限管理、group管理等。
 
 **工具清单**
@@ -102,6 +102,10 @@ fi
 <p align="center"><img src="https://github.com/user-attachments/assets/f681a1bc-e1ec-475c-b314-d092c4c72874" alt="image" width="600"/></p>
 
 - **multi_sysmonitor.sh**: 只需在管理机上运行，可记录多台远程服务器的CPU+GPU+网卡状态
+
+<p align="center"><img src="https://github.com/user-attachments/assets/bf2dd7e5-786a-4a42-a39b-f807231ad070" alt="image" width="600"/></p>
+
+
 
 ## thirdparty
 - **系统换源**：[LinuxMirrors](https://github.com/SuperManito/LinuxMirrors)  
