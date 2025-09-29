@@ -1,4 +1,4 @@
-<img width="1508" height="958" alt="image" src="https://github.com/user-attachments/assets/dc63d352-5660-4192-90ec-d139799a84f7" />›# Linux manager
+# Linux manager
 Linux下的管理工具包，包括sudo权限管理、group管理等。
 
 **工具清单**
