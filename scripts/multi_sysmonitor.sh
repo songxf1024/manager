@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# 批量启动/停止 sys_logger.sh 并收集日志（支持 CSV 转 Excel）
+# 批量启动/停止 sys_logger.sh 并收集日志
 #
 # 功能:
 #   - 在多台服务器上启动 sys_logger.sh，采集 CPU/GPU/内存/网卡 数据
@@ -24,11 +24,11 @@
 #
 
 # ===== 配置区 =====
-SERVERS=("<user>@host" "<user>@host)                  # 改成你的服务器地址
-PASSWORD="xxxx"                                       # ⚠️ 明文存储密码（有安全风险）
+SERVERS=("user@host" "user@host")                     # 改成你的服务器地址
+PASSWORD=""                                           # ⚠️ 明文存储密码（有安全风险）
 REMOTE_SCRIPT="/tmp/sys_logger.sh"                    # 分发到远程的路径
 REMOTE_FILE="/tmp/sys_log.csv"                        # 远程日志文件
-LOCAL_DIR="./logs"                                    # 本地保存目录
+BASE_DIR="./logs"                                     # 本地保存目录
 INTERVAL=1                                            # 采样间隔（秒）
 NETDEV="eno1"                                         # 网卡名
 # ==================
@@ -44,9 +44,9 @@ for arg in "$@"; do
 done
 
 if [ -n "$FOLDER_SUFFIX" ]; then
-    LOCAL_DIR="./logs_${FOLDER_SUFFIX}"
+    LOCAL_DIR="$BASE_DIR/$FOLDER_SUFFIX"
 else
-    LOCAL_DIR="./logs"
+    LOCAL_DIR="$BASE_DIR"
 fi
 mkdir -p "$LOCAL_DIR"
 echo ">>> 日志目录: $LOCAL_DIR"
@@ -178,24 +178,39 @@ cleanup() {
         sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no $srv "pkill -f $REMOTE_SCRIPT" 2>/dev/null
         host=$(echo $srv | cut -d@ -f2)
         echo ">>> 下载 $srv 的日志"
-        sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no $srv:$REMOTE_FILE "$LOCAL_DIR/${host}_sys_log.csv" 2>/dev/null
+        if [ -n "$FOLDER_SUFFIX" ]; then
+            LOCAL_FILE="${LOCAL_DIR}/${host}_${FOLDER_SUFFIX}_sys_log.csv"
+        else
+            LOCAL_FILE="${LOCAL_DIR}/${host}_sys_log.csv"
+        fi
+        sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no $srv:$REMOTE_FILE "$LOCAL_FILE" 2>/dev/null
     done
     if [ "$NO_EXCEL" = false ]; then
-      echo ">>> 转换为 Excel..."
-      python3 - <<'PYCODE'
+      echo ">>> 合并为单个 Excel 文件（每台服务器一个 Sheet）..."
+      python3 - <<PYCODE
 import pandas as pd
 import glob
+import os
 
-logs = glob.glob("./logs*/*_sys_log.csv")
-for f in logs:
-    try:
-        df = pd.read_csv(f)
-        out = f.replace(".csv", ".xlsx")
-        df.to_excel(out, index=False)
-        print(f"已导出 {out}")
-    except Exception as e:
-        print(f"转换 {f} 失败: {e}")
+log_dir = "${LOCAL_DIR}"
+suffix = "${FOLDER_SUFFIX}" if "${FOLDER_SUFFIX}" else "default"
+files = glob.glob(os.path.join(log_dir, "*_sys_log.csv"))
+if not files:
+    print("未找到日志文件")
+else:
+    out_excel = os.path.join(log_dir, f"all_servers_logs_{suffix}.xlsx")
+    with pd.ExcelWriter(out_excel, engine="openpyxl") as writer:
+        for f in files:
+            try:
+                df = pd.read_csv(f)
+                sheet_name = os.path.basename(f).split("_")[0]  # 取 host/IP 作为 sheet 名
+                df.to_excel(writer, index=False, sheet_name=sheet_name[:30])
+                print(f"已写入 sheet: {sheet_name}")
+            except Exception as e:
+                print(f"处理 {f} 失败: {e}")
+    print(f"合并完成: {out_excel}")
 PYCODE
+    fi
     echo ">>> 全部完成 ✅"
     exit 0
 }
