@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# 批量启动/停止 sys_logger.sh 并收集日志
+# 批量启动/停止 sys_logger.sh 并收集日志（支持 CSV 转 Excel）
 #
 # 功能:
 #   - 在多台服务器上启动 sys_logger.sh，采集 CPU/GPU/内存/网卡 数据
@@ -24,8 +24,8 @@
 #
 
 # ===== 配置区 =====
-SERVERS=("user@host" "user@host")                     # 改成你的服务器地址
-PASSWORD=""                                           # ⚠️ 明文存储密码（有安全风险）
+SERVERS=("user@ip1" "user@ip2")   # 改成你的服务器地址
+PASSWORD="xxxx"                                 # ⚠️ 明文存储密码（有安全风险）
 REMOTE_SCRIPT="/tmp/sys_logger.sh"                    # 分发到远程的路径
 REMOTE_FILE="/tmp/sys_log.csv"                        # 远程日志文件
 BASE_DIR="./logs"                                     # 本地保存目录
@@ -98,9 +98,9 @@ echo ">>> 按 Ctrl+C 停止"
 {
     echo -n "timestamp,step,CPU_util(%),Mem_used(MB),Mem_total(MB),Mem_util(%)"
     for ((i=0; i<gpu_count; i++)); do
-        echo -n ",GPU${i}_util(%),GPU${i}_mem_used(MB),GPU${i}_mem_total(MB),GPU${i}_mem_util(%)"
+        echo -n ",GPU${i}_util(%),GPU${i}_mem_used(MB),GPU${i}_mem_total(MB),GPU${i}_mem_util(%),GPU${i}_rx_pcie(MB/s),GPU${i}_tx_pcie(MB/s)"
     done
-    echo -n ",${NETDEV}_rx_kBps,${NETDEV}_tx_kBps"
+    echo -n ",${NETDEV}_rx(KB/s),${NETDEV}_tx(KB/s)"
     echo
 } > "$OUTFILE"
 
@@ -135,10 +135,14 @@ while true; do
     mem_util=$((100 * mem_used / mem_total))
     mem_total_mb=$((mem_total / 1024))
     mem_used_mb=$((mem_used / 1024))
-
     line="$line,$cpu_util,$mem_used_mb,$mem_total_mb,$mem_util"
 
     # GPU 数据
+    gpu_stats=$(nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits)
+    # 一次性采集 PCIe 流量 (每行一个 GPU，列分别是 rx tx)
+    # mapfile -t pcie_stats < <(nvidia-smi dmon -s t -c 1 --format=csv,noheader | tail -n +2)
+    mapfile -t pcie_stats < <(nvidia-smi dmon -s t -c 1 | awk 'NR>1 && $1 ~ /^[0-9]+$/ {print $1","$2","$3}')
+    gpu_idx=0
     while IFS=',' read -r util mem_used mem_total; do
         util=$(echo "$util" | xargs)
         mem_used=$(echo "$mem_used" | xargs)
@@ -148,9 +152,14 @@ while true; do
         else
             mem_util_gpu=0
         fi
-        line="$line,$util,$mem_used,$mem_total,$mem_util_gpu"
-    done < <(nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total \
-                         --format=csv,noheader,nounits)
+
+        # 从 dmon 输出里取 PCIe 数据
+        pcie_rx=$(echo "${pcie_stats[$gpu_idx]}" | cut -d, -f2)
+        pcie_tx=$(echo "${pcie_stats[$gpu_idx]}" | cut -d, -f3)
+
+        line="$line,$util,$mem_used,$mem_total,$mem_util_gpu,$pcie_rx,$pcie_tx"
+        gpu_idx=$((gpu_idx+1))
+    done <<< "$gpu_stats"
 
     # 网卡数据
     cur_rx=$(cat /sys/class/net/$NETDEV/statistics/rx_bytes)
