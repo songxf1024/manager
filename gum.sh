@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# =====================================================
+# GPU/Group Manager
+# =====================================================
+
 # Check for dialog
 if ! command -v dialog &>/dev/null; then
     echo "dialog is not installed. Run: sudo apt install dialog"
@@ -9,7 +13,6 @@ fi
 # Temp files
 TMPFILE=$(mktemp)
 SEARCHFILE=$(mktemp)
-
 
 # Step 1: Build list of default per-user groups (same name and GID)
 declare -A user_primary_gids
@@ -40,14 +43,15 @@ while true; do
   dialog --clear \
     --backtitle "Group Manager" \
     --title "Main Menu" \
-    --menu "Choose an action:" 15 60 5 \
-    1 "Search group" \
-    2 "Browse all groups" \
-    3 "Create new group" \
-    4 "Change GPU group" \
-    5 "Restore GPU group" \
-    6 "View GPU group"\
-    7 "Exit" \
+    --menu "Choose an action:" 17 60 8 \
+    1 "Search Group" \
+    2 "Browse Groups" \
+    3 "Create Group" \
+    4 "Change GPUs' Group" \
+    5 "Restore GPUs' Group" \
+    6 "View GPUs' Group" \
+    7 "Add GPUs to Group" \
+    8 "Exit" \
     2>"$TMPFILE"
 
   main_choice=$(<"$TMPFILE")
@@ -88,6 +92,7 @@ while true; do
             MENU_ITEMS+=("$group_name" "GID: $gid")
         fi
       done < /etc/group
+
       dialog --menu "Select a group to set as GPU device group:" 20 60 10 "${MENU_ITEMS[@]}" 2>"$TMPFILE"
       gpu_group=$(<"$TMPFILE")
 
@@ -121,15 +126,84 @@ while true; do
       continue
       ;;
     7)
+      # --- Add GPU to Group ---
+      MENU_ITEMS=()
+      while IFS=: read -r group_name _ gid users; do
+        if [[ ${default_user_groups[$group_name]} ]]; then continue; fi
+        if [[ $group_name =~ $system_group_pattern || $gid -lt 1000 ]]; then continue; fi
+        MENU_ITEMS+=("$group_name" "GID: $gid")
+      done < /etc/group
+
+      dialog --menu "Select a group to add GPU devices to:" 20 60 10 "${MENU_ITEMS[@]}" 2>"$TMPFILE"
+      selected_group=$(<"$TMPFILE")
+      rm -f "$TMPFILE"
+
+      if [ -z "$selected_group" ]; then
+        dialog --msgbox "No group selected. Operation cancelled." 8 50
+        continue
+      fi
+
+      # --- Build complete GPU device list (excluding caps) ---
+      GPU_LIST=()
+      for dev in /dev/nvidia*; do
+        [[ "$dev" == *"nvidia-caps"* ]] && continue
+        [[ ! -e "$dev" ]] && continue
+        GPU_LIST+=("$dev" "$dev" "off")   # tag, description, default off
+      done
+
+      if [ ${#GPU_LIST[@]} -eq 0 ]; then
+        dialog --msgbox "No NVIDIA devices found on this system." 8 50
+        continue
+      fi
+
+      dialog --checklist "Select GPU devices to add to group '$selected_group':" 22 75 15 "${GPU_LIST[@]}" 2>"$TMPFILE"
+      selected_gpus=$(<"$TMPFILE")
+      rm -f "$TMPFILE"
+
+      if [ -z "$selected_gpus" ]; then
+        dialog --msgbox "No GPU devices selected. Operation cancelled." 8 50
+        continue
+      fi
+
+      # --- Confirm before applying ---
+      confirm_text="The following devices will be added to group '$selected_group':\n\n"
+      for gpu in $selected_gpus; do
+        confirm_text+="  ${gpu//\"/}\n"
+      done
+      dialog --yesno "$confirm_text\n\nProceed?" 20 70
+      response=$?
+      if [ $response -ne 0 ]; then
+        dialog --msgbox "Operation cancelled." 8 50
+        continue
+      fi
+
+      # --- Apply changes ---
+      for gpu in $selected_gpus; do
+        gpu=${gpu//\"/}
+        sudo chgrp "$selected_group" "$gpu" && sudo chmod 660 "$gpu"
+      done
+
+      dialog --msgbox "Selected GPU devices have been assigned to group '$selected_group' with mode 660." 10 70
+
+      # --- Check if current user is in that group ---
+      current_user=$(whoami)
+      dialog --yesno "Do you want to switch to it now using 'newgrp $selected_group'?\n\n(Note: This will start a new shell session.)" 15 70
+      if [ $? -eq 0 ]; then
+          clear
+          echo "Switching to new group session..."
+          exec newgrp "$selected_group"
+      fi
+      continue
+      ;;
+    8)
       clear
       exit 0
       ;;
-    *)
-      continue
-      ;;
   esac
 
-  # Build group menu
+  # ========================
+  # Group browsing section
+  # ========================
   MENU_ITEMS=()
   while IFS=: read -r group_name _ gid users; do
       if [[ ${default_user_groups[$group_name]} ]]; then continue; fi
@@ -181,14 +255,12 @@ while true; do
         group_info=$(getent group "$selected_group")
         IFS=',' read -ra members <<< "$(echo "$group_info" | cut -d: -f4)"
         TABLE_FILE=$(mktemp)
-
         {
           if [ -z "${members[*]}" ]; then
             echo "(No users in this group)"
           else
             printf "%-20s %-6s %s\n" "Username" "UID" "Groups"
             printf "%-20s %-6s %s\n" "--------" "----" "------"
-
             for user in "${members[@]}"; do
               if id "$user" &>/dev/null; then
                 uid=$(id -u "$user")
@@ -204,13 +276,11 @@ while true; do
             done
           fi
         } > "$TABLE_FILE"
-
         dialog --backtitle "Group Viewer" \
           --title "Group Members" \
           --textbox "$TABLE_FILE" 20 80
         rm -f "$TABLE_FILE"
         ;;
-
       2)
         MENU_ITEMS=()
         for dir in /home/*; do
@@ -219,58 +289,47 @@ while true; do
             MENU_ITEMS+=("$user" "")
           fi
         done
-
         if [ ${#MENU_ITEMS[@]} -eq 0 ]; then
           dialog --msgbox "No eligible users found in /home." 8 40
           continue
         fi
-
         dialog --menu "Select user to add to '$selected_group':" 20 50 10 "${MENU_ITEMS[@]}" 2>"$TMPFILE"
         new_user=$(<"$TMPFILE")
         rm -f "$TMPFILE"
-
         if [ -n "$new_user" ]; then
           sudo usermod -aG "$selected_group" "$new_user"
           if [ $? -eq 0 ]; then
-            dialog --msgbox "User '$new_user' added to group '$selected_group'.\n\nNote: The user must log out and log back in for the group change to take effect." 10 60
+            dialog --msgbox "User '$new_user' added to group '$selected_group'.\n\nNote: User must log out/in for change to take effect." 10 60
           else
-            dialog --msgbox "Failed to add user. You may need sudo permission." 8 60
+            dialog --msgbox "Failed to add user. You may need sudo." 8 60
           fi
         fi
         ;;
-
       3)
         group_info=$(getent group "$selected_group")
         IFS=',' read -ra members <<< "$(echo "$group_info" | cut -d: -f4)"
-
         if [ ${#members[@]} -eq 0 ]; then
           dialog --msgbox "No users in group '$selected_group' to remove." 8 50
           continue
         fi
-
         MENU_ITEMS=()
         for user in "${members[@]}"; do
           MENU_ITEMS+=("$user" "")
         done
-
-        dialog --menu "Select a user to remove from '$selected_group':" \
-          20 50 10 "${MENU_ITEMS[@]}" 2>"$TMPFILE"
+        dialog --menu "Select a user to remove from '$selected_group':" 20 50 10 "${MENU_ITEMS[@]}" 2>"$TMPFILE"
         selected_user=$(<"$TMPFILE")
         rm -f "$TMPFILE"
-
         if [ -n "$selected_user" ]; then
           current_groups=$(id -nG "$selected_user" | tr ' ' '\n' | grep -v "^$selected_group$")
           new_group_list=$(echo "$current_groups" | paste -sd,)
-
           sudo usermod -G "$new_group_list" "$selected_user"
           if [ $? -eq 0 ]; then
-            dialog --msgbox "User '$selected_user' removed from group '$selected_group'.\n\nNote: The user must log out and log back in for the group change to take effect." 10 60
+            dialog --msgbox "User '$selected_user' removed from group '$selected_group'.\n\nNote: Log out/in required." 10 60
           else
             dialog --msgbox "Failed to remove user. You may need sudo." 8 60
           fi
         fi
         ;;
-
       4)
         break
         ;;
