@@ -3,7 +3,7 @@ Linux下的管理工具包，包括sudo权限管理、group管理等。
 
 **工具清单**
 - **[tsm.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#tsm)**：临时授予用户sudo权限的管理工具
-- **[gum.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#gum)**：用户组的管理工具
+- **[gum.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#gum)**：GPU/用户组的管理工具
 - **[catcpu.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#catcpu)**：监控CPU使用率
 - **[scripts](https://github.com/songxf1024/manager?tab=readme-ov-file#scripts)**：一些常用的脚本
 - **[thirdparty](https://github.com/songxf1024/manager?tab=readme-ov-file#thirdparty)**：第三方的好用工具
@@ -51,8 +51,8 @@ sudo ./tsm
 ```
 
 ## gum
-Group user manager. 
-用户组的管理工具。
+GPU/Group user manager. 
+GPU/用户组的管理工具。
 
 **用法说明**
 - 先安装库：`sudo apt install dialog`
@@ -68,6 +68,8 @@ Group user manager.
 - 从组中删除用户：自动更新用户所属的组列表
 - 新建用户组
 - 更改和恢复`/dev/nvidia*`所属的组：[可用于GPU的权限控制](https://blog.csdn.net/sxf1061700625/article/details/149027382)
+- 分配GPU所述的组
+- 设置GPU的性能模式
 
 ## catcpu
 曲线图方式显示CPU的使用率。
