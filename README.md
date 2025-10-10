@@ -58,7 +58,7 @@ GPU/用户组的管理工具。
 - 先安装库：`sudo apt install dialog`
 - 运行脚本：`sudo bash gum.sh`
 
-<p align="center"><img src="https://github.com/user-attachments/assets/74f8d67a-5c3c-40d1-97e5-134b8f61e276" alt="image" width="600"/></p>
+<p align="center"><img src="https://github.com/user-attachments/assets/ff99a163-4563-40bc-8194-67bf13a53e12" alt="image" width="600"/></p>
 
 **包含的功能**：
 - 搜索用户组：可输入关键字快速定位目标组
@@ -87,6 +87,13 @@ GPU/用户组的管理工具。
 - 显示 CPU usage、历史最小/最大 usage、load average
 - 支持通过 `-p` 参数自定义绘图点符号
 
+## catgpu
+曲线图方式显示GPU的使用率。
+
+**用法说明**
+- 直接运行：`bash catgpu.sh -g 0`
+
+<p align="center"><img src="https://github.com/user-attachments/assets/7f2f5d27-b8fa-4689-bdac-685ec26e8a18" alt="image" width="600"/></p>
 
 
 ## scripts
