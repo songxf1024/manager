@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =====================================================
-# GPU/Group Manager
+# GPU Group Manager - with "Add GPU to Group" Feature
 # =====================================================
 
 # Check for dialog
@@ -51,7 +51,8 @@ while true; do
     5 "Restore GPUs' Group" \
     6 "View GPUs' Group" \
     7 "Add GPUs to Group" \
-    8 "Exit" \
+    8 "GPU Persistence Mode" \
+    9 "Exit" \
     2>"$TMPFILE"
 
   main_choice=$(<"$TMPFILE")
@@ -103,12 +104,30 @@ while true; do
           [[ "$dev" != /dev/nvidia-caps* ]] && sudo chgrp "$gpu_group" "$dev" && sudo chmod 660 "$dev"
         done
         dialog --msgbox "GPU devices assigned to group '$gpu_group' with mode 660." 8 60
+
+        if systemctl is-active --quiet nvidia-persistenced; then
+          dialog --yesno "'nvidia-persistenced' service is active.
+        It may override your custom GPU group settings.
+
+        Do you want to stop it temporarily?" 10 70
+          if [ $? -eq 0 ]; then
+            sudo systemctl stop nvidia-persistenced
+            sudo systemctl disable nvidia-persistenced
+          fi
+        fi
       fi
       continue
       ;;
     5)
       if sudo /sbin/ub-device-create; then
         dialog --msgbox "GPU device permissions restored via ub-device-create." 8 60
+        dialog --yesno "Do you want to re-enable NVIDIA persistence daemon to restore default management?" 10 70
+        if [ $? -eq 0 ]; then
+          sudo systemctl enable nvidia-persistenced
+          sudo systemctl start nvidia-persistenced
+          dialog --msgbox "'nvidia-persistenced' re-enabled." 8 50
+        fi
+        dialog --msgbox "Persistence Mode may have been disabled. You can use menu option 8 to re-enable it if needed." 8 60
       else
         dialog --msgbox "Failed to restore GPU device permissions." 8 60
       fi
@@ -183,19 +202,69 @@ while true; do
         sudo chgrp "$selected_group" "$gpu" && sudo chmod 660 "$gpu"
       done
 
-      dialog --msgbox "Selected GPU devices have been assigned to group '$selected_group' with mode 660." 10 70
+      dialog --msgbox "Selected GPU devices have been assigned to group '$selected_group' with mode 660. \n\n If 'nvidia-smi' does not show expected GPUs, run:\n\n  newgrp $selected_group" 10 70
+      
+      if systemctl is-active --quiet nvidia-persistenced; then
+        dialog --yesno "'nvidia-persistenced' service is active.
+      It may override your custom GPU group settings.
 
-      # --- Check if current user is in that group ---
-      current_user=$(whoami)
-      dialog --yesno "Do you want to switch to it now using 'newgrp $selected_group'?\n\n(Note: This will start a new shell session.)" 15 70
-      if [ $? -eq 0 ]; then
-          clear
-          echo "Switching to new group session..."
-          exec newgrp "$selected_group"
+      Do you want to stop it temporarily?" 10 70
+        if [ $? -eq 0 ]; then
+          sudo systemctl stop nvidia-persistenced
+        fi
       fi
       continue
       ;;
     8)
+      TMP_STATUS=$(mktemp)
+      nvidia-smi --query-gpu=persistence_mode --format=csv,noheader > "$TMP_STATUS" 2>/dev/null
+      if [ $? -ne 0 ]; then
+        dialog --msgbox "Failed to query GPU persistence mode.\nMake sure NVIDIA driver is loaded and nvidia-smi works." 10 70
+        rm -f "$TMP_STATUS"
+        continue
+      fi
+
+      total_gpus=$(wc -l < "$TMP_STATUS")
+      enabled_gpus=$(grep -c "Enabled" "$TMP_STATUS")
+      disabled_gpus=$(grep -c "Disabled" "$TMP_STATUS")
+
+      if [ "$enabled_gpus" -eq "$total_gpus" ]; then
+        # All GPU Enabled
+        dialog --yesno "Persistence Mode is currently ENABLED for all $total_gpus GPUs.\n\nDo you want to DISABLE it?" 10 60
+        if [ $? -eq 0 ]; then
+          if sudo nvidia-smi -pm 0 >/dev/null 2>&1; then
+            dialog --msgbox "Persistence Mode has been DISABLED for all GPUs." 8 60
+          else
+            dialog --msgbox "Failed to disable Persistence Mode. You may need sudo permission." 8 70
+          fi
+        fi
+      elif [ "$disabled_gpus" -eq "$total_gpus" ]; then
+        # All GPU Disabled
+        dialog --yesno "Persistence Mode is currently DISABLED for all $total_gpus GPUs.\n\nDo you want to ENABLE it?" 10 60
+        if [ $? -eq 0 ]; then
+          if sudo nvidia-smi -pm 1 >/dev/null 2>&1; then
+            dialog --msgbox "Persistence Mode has been ENABLED for all GPUs." 8 60
+          else
+            dialog --msgbox "Failed to enable Persistence Mode. You may need sudo permission." 8 70
+          fi
+        fi
+      else
+        # Mix
+        dialog --yesno "Some GPUs have Persistence Mode ENABLED, some DISABLED.\n\nDo you want to ENABLE it for ALL GPUs?" 10 70
+        if [ $? -eq 0 ]; then
+          if sudo nvidia-smi -pm 1 >/dev/null 2>&1; then
+            dialog --msgbox "Persistence Mode ENABLED for all GPUs." 8 60
+          else
+            dialog --msgbox "Failed to change Persistence Mode. You may need sudo permission." 8 70
+          fi
+        fi
+      fi
+
+      rm -f "$TMP_STATUS"
+      continue
+      ;;
+
+    9)
       clear
       exit 0
       ;;
