@@ -98,15 +98,32 @@ GPU/用户组的管理工具。
 
 ## scripts
 一些常用的脚本
-- **custom_check.sh**: 放在 `/etc/profile.d/` 下或创建并放在 `/etc/bash.d/` 下。然后在 `/etc/bash.bashrc/` 的底部中添加引用，用于统一为所有用户设置一些环境：
+- **custom_check.sh**: 放在 `/etc/profile.d/` 下或创建并放在 `/etc/bash.d/` 下。然后在 `/etc/bash.bashrc` 的底部中添加引用，用于统一为所有用户设置一些环境：
+
 ```bash
-# 加载 /etc/bash.d/ 目录下的所有脚本
-if [ -d /etc/bash.d ]; then
-    for file in /etc/bash.d/*; do
-        [ -f "$file" ] && . "$file"
-    done
-fi
+# 1. 创建目录 
+sudo mkdir /etc/bash.d/
 ```
+
+```bash
+# 2. 写入或者移入脚本
+sudo vim /etc/bash.d/custom_check.sh
+```
+
+```bash
+# 3. 添加引用
+sudo vim /etc/bash.bashrc
+```
+
+> 在 `/etc/bash.bashrc` 的底部中添加：
+> ```bash
+> # 加载 /etc/bash.d/ 目录下的所有脚本
+> if [ -d /etc/bash.d ]; then
+>     for file in /etc/bash.d/*; do
+>         [ -f "$file" ] && . "$file"
+>     done
+> fi
+> ```
 
 <p align="center"><img src="https://github.com/user-attachments/assets/f681a1bc-e1ec-475c-b314-d092c4c72874" alt="image" width="600"/></p>
 
