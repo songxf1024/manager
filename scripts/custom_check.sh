@@ -116,7 +116,25 @@ if [ "$username" != "root" ]; then
     # echo "$username" | su -c "exit" "$username" >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         echo -e "\033[1;31m[安全警告] 您的账号 \"$username\" 的密码与用户名相同！请尽快修改密码。\033[0m" >&2
+        # 5 秒倒计时
+        for i in 5 4 3 2 1; do
+            # \r 回到行首覆盖上一秒的内容
+            echo -ne "\033[1;33m将在 ${i} 秒后继续...\033[0m\r"
+            sleep 1
+        done
+        # 输出换行，让后续输出正常换到下一行
+        echo
     fi
+fi
+
+
+## 检查家目录空间是否超过 50GB
+# 使用 du -sm 统计家目录大小（单位：MB）
+HOME_USAGE_MB=$(du -sm "$HOME" 2>/dev/null | awk '{print $1}')
+THRESHOLD_MB=$((50 * 1024))   # 50GB ≈ 50 * 1024 MB
+if [ -n "$HOME_USAGE_MB" ] && [ "$HOME_USAGE_MB" -gt "$THRESHOLD_MB" ]; then
+    HOME_USAGE_GB=$((HOME_USAGE_MB / 1024))
+    echo -e "\033[1;31m[空间警告] 您的家目录 \"$HOME\" 当前占用约 ${HOME_USAGE_GB}GB，已超过 50GB，请尽快清理无用文件。\033[0m" >&2
 fi
 
 
