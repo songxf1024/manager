@@ -66,6 +66,7 @@ export PATH=/usr/local/cuda-$CUDA_VERSION/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda-$CUDA_VERSION/lib64:$LD_LIBRARY_PATH
 export CMAKE_CUDA_COMPILER=/usr/local/cuda-$CUDA_VERSION/bin/nvcc
 export CUDA_HOME=/usr/local/cuda-$CUDA_VERSION
+export CUDACXX=$CUDA_HOME/bin/nvcc
 # export PATH=$PATH:/snap/bin
 
 
