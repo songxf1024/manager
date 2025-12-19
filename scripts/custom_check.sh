@@ -148,6 +148,8 @@ read MEM_TOTAL MEM_USED <<<$(free -m | awk '/Mem:/ {print $2, $3}')
 MEM_PCT=$((MEM_USED * 100 / MEM_TOTAL))
 # IP
 IP_ADDR=$(hostname -I | awk '{print $1}')
+PUBLIC_IP=$(curl -s --max-time 3 ifconfig.me 2>/dev/null)
+[ -z "$PUBLIC_IP" ] && PUBLIC_IP="N/A"
 # CPU 使用率
 CPU_IDLE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/")
 CPU_USAGE=$(awk "BEGIN {printf \"%.0f\", 100 - $CPU_IDLE}")
@@ -156,19 +158,21 @@ echo -e "\n${CYAN}当前系统信息${RESET}"
 echo -e "---------------------------------------------------"
 printf "| %-10s | %-40s |\n" "资源" "使用情况"
 printf "|----------|--------------------------------------|\n"
-printf "| %-10s | %-36s |\n" "IP地址" "$IP_ADDR"
-printf "| %-7s  | %-36s |\n" "CPU"    "$CPU_USAGE%"
-printf "| %-10s | %-36s |\n" "内存"   "${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PCT}%)"
+printf "| %-10s | %-36s |\n" "内网IP" "$IP_ADDR"
+printf "| %-10s | %-36s |\n" "公网IP" "$PUBLIC_IP"
+printf "| %-7s  | %-36s |\n" "CPU占用"    "$CPU_USAGE%"
+printf "| %-10s | %-36s |\n" "内存使用"   "${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PCT}%)"
 printf "| %-10s | %-36s |\n" "负载情况" "$LOADAVG"
 printf "| %-10s | %-36s |\n" "运行时长" "$UPTIME"
 echo -e "---------------------------------------------------"
 echo -e "${CYAN}磁盘挂载信息${RESET}"
-echo -e "-------------------------------------------------"
-printf "| %-10s | %-10s | %-10s | %-6s |\n" "Mount" "Used" "Total" "Usage"
-df -h -x tmpfs -x devtmpfs | awk 'NR>1 && ($6=="/" || $6=="/mnt/disk") {
-    printf "| %-10s | %-10s | %-10s | %-6s |\n", $6, $3, $2, $5
+echo -e "------------------------------------------------------"
+printf "| %-15s | %-10s | %-10s | %-6s |\n" "Mount" "Used" "Total" "Usage"
+printf "|-----------------|----------------------------------|\n"
+df -h -x tmpfs -x devtmpfs | awk 'NR>1 && ($6=="/" || $6=="/mnt/disk" || $6=="/home/data1") {
+    printf "| %-15s | %-10s | %-10s | %-6s |\n", $6, $3, $2, $5
 }'
-echo -e "-------------------------------------------------"
+echo -e "------------------------------------------------------"
 
 
 
