@@ -153,6 +153,9 @@ PUBLIC_IP=$(curl -s --max-time 3 ifconfig.me 2>/dev/null)
 # CPU 使用率
 CPU_IDLE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/")
 CPU_USAGE=$(awk "BEGIN {printf \"%.0f\", 100 - $CPU_IDLE}")
+# 用户登录信息
+USER_LIST=$(who | awk '{print $1}' | sort -u | tr '\n' ',')
+USER_LIST=${USER_LIST%,}
 # 输出系统信息
 echo -e "\n${CYAN}当前系统信息${RESET}"
 echo -e "---------------------------------------------------"
@@ -164,6 +167,7 @@ printf "| %-7s  | %-36s |\n" "CPU占用"    "$CPU_USAGE%"
 printf "| %-10s | %-36s |\n" "内存使用"   "${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PCT}%)"
 printf "| %-10s | %-36s |\n" "负载情况" "$LOADAVG"
 printf "| %-10s | %-36s |\n" "运行时长" "$UPTIME"
+printf "| %-10s | %-36s |\n" "在线用户" "${USER_LIST}"
 echo -e "---------------------------------------------------"
 echo -e "${CYAN}磁盘挂载信息${RESET}"
 echo -e "------------------------------------------------------"
