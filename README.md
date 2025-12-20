@@ -4,13 +4,14 @@ Linux下的管理工具包，包括sudo权限管理、group管理等。
 **工具清单**
 - **[tsm.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#tsm)**：临时授予用户sudo权限的管理工具
 - **[gum.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#gum)**：GPU/用户组的管理工具
+- **[asm.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#asm)**：开机自启动管理工具
 - **[catcpu.sh](https://github.com/songxf1024/manager?tab=readme-ov-file#catcpu)**：监控CPU使用率
 - **[scripts](https://github.com/songxf1024/manager?tab=readme-ov-file#scripts)**：一些常用的脚本
 - **[thirdparty](https://github.com/songxf1024/manager?tab=readme-ov-file#thirdparty)**：第三方的好用工具
 
 
 ## tsm
-Temporary sudo privilege manager. 
+**T**emporary **S**udo **M**anager. 
 临时授予用户sudo权限的管理工具。
 
 设计原理和初衷可以看这里：[【技巧】Ubuntu临时授予用户sudo权限，并在一定时间后自动撤销](https://blog.csdn.net/sxf1061700625/article/details/133270785)
@@ -33,8 +34,6 @@ Temporary sudo privilege manager.
 - 删除已授权用户
 - 更新已授权用户时间(同新增用户)
 
----
-
 **打包为可执行文件**
 ```bash
 sudo apt install shc -y
@@ -50,15 +49,17 @@ shc -f tsm_ui.sh -o tsm
 sudo ./tsm
 ```
 
+---
+
 ## gum
-GPU/Group user manager. 
+**G**PU/Group **U**ser **M**anager. 
 GPU/用户组的管理工具。
+
+<p align="center"><img src="https://github.com/user-attachments/assets/ff99a163-4563-40bc-8194-67bf13a53e12" alt="image" width="600"/></p>
 
 **用法说明**
 - 先安装库：`sudo apt install dialog`
 - 运行脚本：`sudo bash gum.sh`
-
-<p align="center"><img src="https://github.com/user-attachments/assets/ff99a163-4563-40bc-8194-67bf13a53e12" alt="image" width="600"/></p>
 
 **包含的功能**：
 - 搜索用户组：可输入关键字快速定位目标组
@@ -70,6 +71,50 @@ GPU/用户组的管理工具。
 - 更改和恢复`/dev/nvidia*`所属的组：[可用于GPU的权限控制](https://blog.csdn.net/sxf1061700625/article/details/149027382)
 - 分配GPU所述的组
 - 设置GPU的性能模式
+
+---
+
+## asm
+**A**uto **S**tart **M**anager.  
+开机自启动管理工具，用于统一管理 Linux 下的开机自启命令。
+
+<p align="center"><img src="https://github.com/user-attachments/assets/9d43a156-2957-44e1-94f4-fce7bc7eb789" alt="image" width="400"/></p>
+
+**设计原理**
+
+- 使用一个统一的自启命令文件：`/etc/custom_autostart_cmds.sh`
+- 配套一个 `systemd` 服务：`custom-autostart.service`
+- 所有要开机执行的命令都写入 `custom_autostart_cmds.sh`，由 systemd 在系统启动阶段一次性执行
+- 通过交互式菜单管理命令列表与服务状态，并提供“一键卸载环境”功能，方便回滚
+
+**用法说明**
+- 直接运行：  
+```bash
+  sudo bash asm.sh
+```
+
+**包含的功能**：
+
+- 列出自启动命令
+  - 显示当前写入 /etc/custom_autostart_cmds.sh 中的所有有效命令
+  - 自动跳过注释与空行，并带编号显示
+- 新增自启动命令
+  - 交互式输入一条要在开机阶段执行的命令
+  - 自动追加到 /etc/custom_autostart_cmds.sh 末尾
+  - 依赖初始化环境（命令文件 + systemd 服务），否则会提示无法添加
+- 删除自启动命令
+  - 先按编号展示当前命令列表
+  - 输入编号即可删除对应命令行（对原文件做 sed 精确删除）
+- 查看 systemd 服务状态
+  - 调用 systemctl status custom-autostart.service
+  - 用于确认服务是否加载、启用、最近一次执行状态等
+- 卸载当前脚本环境
+  - 禁用并删除 custom-autostart.service
+  - 删除 /etc/custom_autostart_cmds.sh
+  - 触发 systemctl daemon-reload
+  - 不会删除 asm.sh 脚本本身，如不再需要可手动删除
+
+---
 
 ## catcpu
 曲线图方式显示CPU的使用率。
@@ -95,6 +140,7 @@ GPU/用户组的管理工具。
 
 <p align="center"><img src="https://github.com/user-attachments/assets/7f2f5d27-b8fa-4689-bdac-685ec26e8a18" alt="image" width="600"/></p>
 
+---
 
 ## scripts
 一些常用的脚本
@@ -131,7 +177,7 @@ sudo vim /etc/bash.bashrc
 
 <p align="center"><img src="https://github.com/user-attachments/assets/bf2dd7e5-786a-4a42-a39b-f807231ad070" alt="image" width="600"/></p>
 
-
+---
 
 ## thirdparty
 - **系统换源**：[LinuxMirrors](https://github.com/SuperManito/LinuxMirrors)  
