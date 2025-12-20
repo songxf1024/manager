@@ -152,14 +152,39 @@ add_item() {
         return
     fi
 
+    cecho "$BLUE" "提示：所有自启动命令会在同一个脚本中按顺序执行。"
+    cecho "$BLUE" "如果某个命令是“长期运行”的（例如：python3 app.py 启动服务），"
+    cecho "$BLUE" "建议放到后台运行，否则后面的命令将不会被执行。"
+    echo
+
     read -rp "请输入要添加的开机自启动命令： " cmd
     if [ -z "$cmd" ]; then
         cecho "$YELLOW" "命令不能为空，已取消添加。"
         return
     fi
 
-    echo "$cmd" >> "$AUTOSTART_FILE"
-    cecho "$GREEN" "已添加：$cmd"
+    # 去掉尾部空白，方便判断是否以 & 结尾
+    local cmd_trimmed
+    cmd_trimmed="$(echo "$cmd" | sed 's/[[:space:]]*$//')"
+
+    # 如果末尾已经有 &，就不再多问，直接当作后台命令
+    if [[ "$cmd_trimmed" != *" &" && "$cmd_trimmed" != "&" ]]; then
+        echo
+        cecho "$YELLOW" "当前命令不是后台形式，如果它不会很快退出，后续自启动命令将不会被执行。"
+        read -rp "是否需要在末尾自动追加 '&' 让其后台运行？[y/N] " bg_ans
+        case "$bg_ans" in
+            y|Y|yes|YES)
+                cmd_trimmed="$cmd_trimmed &"
+                cecho "$GREEN" "已转换为后台执行命令：$cmd_trimmed"
+                ;;
+            *)
+                cecho "$YELLOW" "保持原样，不追加 '&'。"
+                ;;
+        esac
+    fi
+
+    echo "$cmd_trimmed" >> "$AUTOSTART_FILE"
+    cecho "$GREEN" "已添加：$cmd_trimmed"
     cecho "$BLUE" "提示：命令将在下次系统重启时自动执行（服务 $SERVICE_NAME 已启用）。"
 }
 
