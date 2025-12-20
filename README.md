@@ -1,4 +1,5 @@
 # Linux manager
+
 Linux下的管理工具包，包括sudo权限管理、group管理等。
 
 **工具清单**
@@ -12,7 +13,10 @@ Linux下的管理工具包，包括sudo权限管理、group管理等。
 
 ## tsm
 **T**emporary **S**udo **M**anager. 
+
 临时授予用户sudo权限的管理工具。
+
+<p align="center"><img src="https://github.com/user-attachments/assets/48e6c2ba-8387-4b91-bb18-b77f61fcbf45" alt="image" width="600"/></p>
 
 设计原理和初衷可以看这里：[【技巧】Ubuntu临时授予用户sudo权限，并在一定时间后自动撤销](https://blog.csdn.net/sxf1061700625/article/details/133270785)
 
@@ -22,9 +26,6 @@ Linux下的管理工具包，包括sudo权限管理、group管理等。
 **用法说明**
 - 先安装库：`sudo apt install dialog`
 - 运行脚本：`sudo bash tsm_ui.sh`
-
-<p align="center"><img src="https://github.com/user-attachments/assets/48e6c2ba-8387-4b91-bb18-b77f61fcbf45" alt="image" width="600"/></p>
-
 
 **包含的功能**：
 - 初始化日志文件和权限目录：
@@ -53,6 +54,7 @@ sudo ./tsm
 
 ## gum
 **G**PU/Group **U**ser **M**anager. 
+
 GPU/用户组的管理工具。
 
 <p align="center"><img src="https://github.com/user-attachments/assets/ff99a163-4563-40bc-8194-67bf13a53e12" alt="image" width="600"/></p>
