@@ -185,6 +185,7 @@ sudo vim /etc/bash.bashrc
 - **系统换源**：[LinuxMirrors](https://github.com/SuperManito/LinuxMirrors)  
 > 更换系统软件源: `bash <(curl -sSL https://linuxmirrors.cn/main.sh)`  
 > Docker 安装与换源: `bash <(curl -sSL https://linuxmirrors.cn/docker.sh)`  
-> Docker 更换镜像加速器: `bash <(curl -sSL https://linuxmirrors.cn/docker.sh) --only-registry`  
+> Docker 更换镜像加速器: `bash <(curl -sSL https://linuxmirrors.cn/docker.sh) --only-registry`
+> Docker/K8s 换毫秒镜像源: `sudo bash -c "$(curl -sSL https://n3.ink/helper)"`    
 
 
